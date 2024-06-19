@@ -58,10 +58,6 @@ class Table extends Component {
     });
   };
 
-  handleBackButtonClick = () => {
-    window.location.href = "/settlements";
-  };
-
   handleRatesModal = async (company_name) => {
     const backendURL = process.env.REACT_APP_BACKEND_URL;
     this.handleRatesModalToggle("open");
@@ -413,11 +409,7 @@ class Table extends Component {
         )}
         <div className="Table-container">
           <div className="table-Header">
-            {showBackButton && (
-              <div className="back-button" onClick={this.handleBackButtonClick}>
-                <LeftSign className="icon2" />
-              </div>
-            )}
+            
             {showRates && (
               <Link to={`/createsettlement`}>
                 <button className="btn-primary"><PlusSymbol className="white-icon" /> Create Invoice</button>
@@ -431,9 +423,8 @@ class Table extends Component {
                 <button className="btn-primary" onClick={() => this.handleExcelModalToggle()}><Excel className="white-icon" />Generate Excel</button>
               </div>
             )}
-
             <input
-              className="inputField search-input"
+              className="inputFeild search-input"
               type="text"
               placeholder="Search"
               onChange={this.handleSearch}

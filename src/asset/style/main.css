@@ -1431,7 +1431,10 @@ input[type="checkbox"] {
 .table-header-buttons {
 	display: flex;
 	gap: 20px;
-	margin-left: -400px;
+}
+
+.search-input {
+	height: 40px;
 }
 
 .table-Body {
@@ -1484,14 +1487,12 @@ td:last-child {
 
 .table-Footer {
 	height: 8%;
-	/* border-top: 1px solid var(--black); */
 	padding: 0px 30px;
 	display: flex;
 	align-items: center !important;
 	justify-content: flex-end;
 	gap: 0px 50px;
 	font-size: 13px;
-	/* padding-bottom: 10px; */
 }
 
 .table-footer-rows-div {
@@ -1537,14 +1538,11 @@ td:last-child {
 	background-color: var(--secondary-dark);
 }
 
-.search-input {
-	height: 40px;
-}
-
 /* ----------------------------- Check Settlements  ----------------------------- */
 
 .settlement-first-row {
 	height: 15vh;
+	position: relative;
 }
 
 .settlement-card {
@@ -3059,35 +3057,9 @@ border-bottom: none !important;
 }
 
 .back-button {
-	margin-top: 7px;
-	margin-left: 20px;
-	width: 30px;
-	height: 30px;
-	border-radius: 50%;
-	background-color: var(--secondary);
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	cursor: pointer;
-}
-
-.back-button-circle {
-	width: 22px;
-	height: 22px;
-	border-radius: 30%;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-.back-button img {
-	width: 30px;
-	height: 30px;
-}
-
-.back-button:hover {
-	background-color: var(--secondary-dark);
-	cursor: pointer;
+	position: absolute;
+	top:4%;
+	left:.5%
 }
 
 /* / ........................................................ / */
