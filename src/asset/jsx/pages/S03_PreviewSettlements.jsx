@@ -163,7 +163,7 @@ class PreviewSettlement extends Component {
 							</div>
 						</div>
 					</div>
-					<div className="main-screen-rows settlement-second-row">
+					<div className="main-screen-rows">
 						<div className="row-cards table-card">
 							<SettlementTable
 								showBackButton={true}

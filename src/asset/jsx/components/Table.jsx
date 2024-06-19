@@ -160,20 +160,6 @@ class Table extends Component {
                     )}
                   </React.Fragment>
                 ))}
-                {/* <tr className="p2 total-amount-row">
-                  <td colSpan={headerLabels.length + 3}>
-                    <div className="total-amount-container">
-                      <div className="total-amount">
-                        Total Amount: {totalAmountCurrentPage.toFixed(2)}
-                      </div>
-                      {showTotalAmount && (
-                        <div className="complete-amount">
-                          <strong>Amount Total: </strong> {totalAmountAllPages.toFixed(2)}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr> */}
                 <tr className="p2 total-amount-row">
                   <td className="txn-amount-blank" colSpan={4}></td>
                   <td className="txn-amount-head" colSpan={4}>Subtotal</td>

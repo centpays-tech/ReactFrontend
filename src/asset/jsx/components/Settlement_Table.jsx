@@ -240,7 +240,7 @@ class Table extends Component {
   };
 
   render() {
-    const { headerLabels, showRates, showReport, company_name, showBackButton } =
+    const { headerLabels, showRates, showReport, company_name } =
       this.props;
     const {
       isRatesModal,
