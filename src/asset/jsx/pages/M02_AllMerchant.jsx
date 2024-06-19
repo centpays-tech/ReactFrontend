@@ -180,7 +180,7 @@ class ListSettlement extends Component {
             </div>
           </div>
           <div className="main-screen-rows settlement-second-row">
-            <div className="row-cards table-card">
+            <div className="row-cards merchant-table-card">
               <MerchantTable
                 headerLabels={headerLabels}
                 apiData={apiData}

@@ -1421,7 +1421,7 @@ input[type="checkbox"] {
 }
 
 .table-Header {
-	height: 13%;
+	height: 90px;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -1438,7 +1438,7 @@ input[type="checkbox"] {
 }
 
 .table-Body {
-	height: 79%;
+	max-height: 60vh;
 	overflow-y: auto;
 }
 
@@ -1486,7 +1486,7 @@ td:last-child {
 }
 
 .table-Footer {
-	height: 8%;
+	height: 50px;
 	padding: 0px 30px;
 	display: flex;
 	align-items: center !important;
@@ -1553,13 +1553,8 @@ td:last-child {
 	padding: 10px 30px;
 }
 
-.settlement-second-row {
-	height: 85vh;
-}
-
 .table-card {
-	height: 100%;
-	width: 98%;
+	width: 99%;
 	padding: 0;
 }
 
@@ -3749,6 +3744,11 @@ hr {
 
 .pending-merchant {
 	background-color: rgb(255, 180, 0, 0.2);
+}
+
+.merchant-table-card{
+	width: 98.2%;
+	padding: 0;
 }
 
 /* / Add Merchant Side Panel / */
