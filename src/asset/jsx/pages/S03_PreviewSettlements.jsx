@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Link } from "react-router-dom";
 
 // components
 import Header from "../components/Header";
@@ -7,7 +8,7 @@ import SettlementTable from "../components/Settlement_Table";
 import MessageBox from "../components/Message_box";
 
 // images
-import { Article, DollarCircle, User, Wallet } from "../../media/icon/SVGicons";
+import { Article, DollarCircle, User, Wallet, LeftArrow } from "../../media/icon/SVGicons";
 
 class PreviewSettlement extends Component {
 	constructor(props) {
@@ -99,7 +100,13 @@ class PreviewSettlement extends Component {
 						}  `}
 				>
 					<div className="main-screen-rows settlement-first-row">
+					<Link to="/settlements"> 
+                <LeftArrow className=" back-button icon2" />
+             </Link>
 						<div className="row-cards settlement-card">
+						
+            
+            
 							<div className="settlement-card-section">
 								<div>
 								<h4>{this.state.company_name.split(/[^a-zA-Z\s]+/).join(' ')}</h4>
