@@ -175,7 +175,6 @@ class CreateSettlement extends Component {
         },
       });
       const data = await response.json();
-
       this.setState({ companyList: data });
     } catch (error) {
       this.setState({
@@ -1152,7 +1151,7 @@ class CreateSettlement extends Component {
               <div className=" create-settlement-right-container">
                 <div className="row-cards create-settlement-right-header">
                   <button className="btn-primary btn1 disabled-button">
-                    <Create className="btn-icon "/>
+                    <Create className="btn-icon black-icon"/>
                     <p>Generate</p>
                   </button>
                   <div className="right-header-second-row">
@@ -1473,7 +1472,7 @@ class CreateSettlement extends Component {
               <div className=" create-settlement-right-container">
                 <div className="row-cards create-settlement-right-header">
                   <button className="btn-primary btn1">
-                    <Create className="btn-icon"/>
+                    <Create className="btn-icon white-icon"/>
                     <p>Generate</p>
                   </button>
                   <div className="right-header-second-row">
@@ -1488,7 +1487,7 @@ class CreateSettlement extends Component {
                     className="btn-primary btn3"
                     onClick={() => this.handleSendSettlement()}
                   >
-                    <Send className="btn-icon" />
+                    <Send className="btn-icon white-icon" />
                     <p>Send</p>
                   </button>
                 </div>
@@ -1572,12 +1571,12 @@ class CreateSettlement extends Component {
                       >
                         Send
                       </button>
-                      <button
+                      {/* <button
                         className="btn-secondary"
                         onClick={() => this.handleSendSettlement()}
                       >
                         Cancel
-                      </button>
+                      </button> */}
                     </div>
                   </>
                 )}
@@ -2244,7 +2243,7 @@ class CreateSettlement extends Component {
                     className="btn-primary btn1"
                     onClick={this.handleGenerate}
                   >
-                    <Create className="btn-icon"/>
+                    <Create className="btn-icon white-icon"/>
                     <p>Generate</p>
                   </button>
                   <div className="right-header-second-row">

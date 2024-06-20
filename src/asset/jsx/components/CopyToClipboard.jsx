@@ -35,14 +35,14 @@ class CopyToClipboard extends Component {
 
     return (
       <div>
-        <p
+        <div
           onClick={this.copyToClipboard}
-          className={textClass}
-          style={{ cursor: 'pointer', fontWeight: '500', fontSize:'14px', margin:'0', padding:'0' }}
+          className={`copy-text ${textClass}`} 
           onAnimationEnd={this.handleAnimationEnd}
+          style={{ cursor: 'pointer', fontWeight: '500', fontSize: '13px', margin: '0', padding: '0' }}
         >
           {this.props.text}
-        </p>
+        </div>
         {this.state.copySuccess && <span>{this.state.copySuccess}</span>}
       </div>
     );

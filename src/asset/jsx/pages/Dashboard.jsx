@@ -465,6 +465,7 @@ class Dashboard extends Component {
                     />
                   </div>
                   <CustomTooltip
+                   maxWidth={250}
                     details={
                       <ul>
                         <li>
@@ -687,19 +688,20 @@ class Dashboard extends Component {
               <div className="card-head-with-view-more">
                 <h4>Weekly Country-wise Overview</h4>
                 <CustomTooltip
-                  details={
-                    <ul>
-                      <li>
-                        Left part of the card highlights the top 4 countries driving transaction activity this week with their total number of transactions.
-                      </li>
-                      <li>
-                        Right side of card depicts the volume of transactions in those countries. The total volume of transactions in these top 4 countries is also stated.
-                      </li>
-                    </ul>
-                  }
-                >
-                  <Infoicon className="icon2" />
-                </CustomTooltip>
+                   maxWidth={300}
+                    details={
+                      <ul>
+                        <li>
+                           Left part of the card provides a breakdown of number of transactions (successful, failed, incomplete) for this week.
+                        </li>
+                        <li>
+                          The right side shows amount of successful transactions, amount of failed transactions and the total mount of transactions for the complete week.
+                        </li>
+                      </ul>
+                    }
+                  >
+                    <Infoicon className="icon2" />
+                  </CustomTooltip>
               </div>
 
               <Card7chart card7_data={card7_data} />
@@ -773,7 +775,7 @@ class Dashboard extends Component {
             <div className="row-cards fourth-row-card1">
               <div className="card-head-with-view-more">
               <h4>Performance This Month</h4>
-                <CustomTooltip details={<p>This card shows key metrics for transactions in the last month (total number of transactions, total volume of transactions, number of successful transactions, volume of successful transactions</p>}>
+                <CustomTooltip  maxWidth={250} details={<p>This card shows key metrics for transactions in the last month (total number of transactions, total volume of transactions, number of successful transactions, volume of successful transactions</p>}>
                   <Infoicon className="icon2" />
                 </CustomTooltip>
               </div>

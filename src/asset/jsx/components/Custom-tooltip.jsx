@@ -22,7 +22,7 @@
 
 //   updateDetailsWidth = () => {
 //     const { details } = this.props;
-//     if (details) {
+//     if (typeof details === 'string') {
 //       const wordCount = details.trim().split(/\s+/).length;
 //       let detailsWidth = 200;
 //       let left = '-70px';
@@ -35,7 +35,7 @@
 //   };
 
 //   render() {
-//     const { title, details, children } = this.props;
+//     const { title, details, children, bullet } = this.props;
 //     const { detailsWidth, left } = this.state;
 
 //     return (
@@ -44,13 +44,21 @@
 //           {title && <h3 className="custom-tooltip-title">{title}</h3>}
 //           {details && (
 //             <p
-//               className="custom-tooltip-details"
+//               className={`custom-tooltip-details ${bullet ? 'bullet' : ''}`}
 //               style={{
 //                 width: `${detailsWidth}px`,
 //                 left: left,
 //               }}
 //             >
-//               {details}
+//               {bullet ? (
+//                 <ul
+//                   dangerouslySetInnerHTML={{
+//                     __html: details,
+//                   }}
+//                 />
+//               ) : (
+//                 details
+//               )}
 //             </p>
 //           )}
 //           {children}
@@ -64,50 +72,17 @@
 //   title: PropTypes.string,
 //   details: PropTypes.string,
 //   children: PropTypes.node.isRequired,
+//   bullet: PropTypes.bool,
 // };
 
 // export default CustomTooltip;
 
 
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 
 class CustomTooltip extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      detailsWidth: 200,
-      left: '-70px', 
-    };
-  }
-
-  componentDidMount() {
-    this.updateDetailsWidth();
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.details !== this.props.details) {
-      this.updateDetailsWidth();
-    }
-  }
-
-  updateDetailsWidth = () => {
-    const { details } = this.props;
-    if (typeof details === 'string') {
-      const wordCount = details.trim().split(/\s+/).length;
-      let detailsWidth = 200;
-      let left = '-70px';
-      if (wordCount > 25) {
-        detailsWidth = 350;
-        left = '-150px';
-      }
-      this.setState({ detailsWidth, left });
-    }
-  };
-
   render() {
-    const { title, details, children, bullet } = this.props;
-    const { detailsWidth, left } = this.state;
+    const { title, details, children, bullet, maxWidth = 200 } = this.props;
 
     return (
       <div className="custom-tooltip-container">
@@ -116,10 +91,7 @@ class CustomTooltip extends Component {
           {details && (
             <p
               className={`custom-tooltip-details ${bullet ? 'bullet' : ''}`}
-              style={{
-                width: `${detailsWidth}px`,
-                left: left,
-              }}
+              style={{width: `${maxWidth}px`, left: `-${maxWidth/2.5}px` }}
             >
               {bullet ? (
                 <ul
@@ -138,12 +110,5 @@ class CustomTooltip extends Component {
     );
   }
 }
-
-CustomTooltip.propTypes = {
-  title: PropTypes.string,
-  details: PropTypes.string,
-  children: PropTypes.node.isRequired,
-  bullet: PropTypes.bool,
-};
 
 export default CustomTooltip;
