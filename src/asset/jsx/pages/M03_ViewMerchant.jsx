@@ -57,6 +57,7 @@ class ViewMerchant extends Component {
       directorInfo: false,
       isEditing: false,
       isSuspended: false,
+      calendarVisible: false,
       isActive: null,
       statusText: "Active",
       idforEdit: [],
@@ -64,7 +65,7 @@ class ViewMerchant extends Component {
       buttonLabel: "Suspend",
       errorMessage: "",
       messageType: "",
-      // calendarVisible: false,
+    
       // fromDate: "22/5/24",
       // toDate: "22/5/24"
     };
