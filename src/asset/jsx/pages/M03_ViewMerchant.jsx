@@ -3,12 +3,12 @@ import React, { Component } from "react";
 //Components
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import MerchantForm from "../components/Merchant_Form";
+import MessageBox from "../components/Message_box";
 // import ApprovalRatioChart from "../components/ApprovalRatioChart";
 
 // SVG Icons
 import {
-  LeftArrow,
-  RightArrow,
   ApprovalRatio,
   CreaditCard,
   DollarCircle,
@@ -27,7 +27,6 @@ import {
   PendingUserIcon,
   MerchantRates,
   MerchantSettlements,
-  Close,
 } from "../../media/icon/SVGicons";
 
 //Images and Icons
@@ -59,6 +58,14 @@ class ViewMerchant extends Component {
       isEditing: false,
       isSuspended: false,
       calendarVisible: false,
+      isActive: null,
+      statusText: "Active",
+      idforEdit: [],
+      idforRatedata: [],
+      buttonLabel: "Suspend",
+      errorMessage: "",
+      messageType: "",
+    
       // fromDate: "22/5/24",
       // toDate: "22/5/24"
     };
@@ -75,29 +82,107 @@ class ViewMerchant extends Component {
     let date = new Date().toISOString();
     date = date.split("T")[0]
     const backendURL = process.env.REACT_APP_BACKEND_URL;
-    this.fetchData(`${backendURL}/viewclient?company_name=${company_name}`,'overviewData');
-    this.fetchData(`${backendURL}/approvalratio?merchant=${company_name}&fromDate=${date}&toDate=${date}`,'approvalData');
+    this.fetchData(
+      `https://www.paylinkup.online/viewclient?company_name=${company_name}`,
+      "overviewData",
+      (data) => {
+        this.setState({
+          idforEdit: data._id,
+          isActive: data.status === " ",
+          statusText: data.status,
+          buttonLabel: data.status === "Active" ? "Suspend" : "Activate",
+        });
+        console.log("ID for Edit set to:", data._id);
+      }
+    );
+    // this.fetchData(`${backendURL}/approvalratio?merchant=${company_name}&fromDate=${date}&toDate=${date}`,'approvalData');
     this.fetchData(`${backendURL}/volumesum?company_name=${company_name}`,'volumeData');
   }
 
-  fetchData = async (url, dataVariable) => {
+  fetchData = async (url, dataVariable, callback = null, Body) => {
     const { token } = this.state;
     try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(Body),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.setState({ [dataVariable]: data }, () => {
+          if (callback) callback(data);
+          console.log(`${dataVariable} fetched data:`, data);
+        });
+      } else {
+        console.error("Error fetching data:", response.statusText);
+        this.setState({
+          errorMessage: "Error in Fetching data. Please try again later.",
+          messageType: "fail",
+        });
+      }
+    } catch (error) {
+      console.error("An unexpected error occurred:", error);
+      this.setState({
+        errorMessage: "An unexpected error occurred. Please try again later.",
+        messageType: "",
+      });
+    }
+  };
+
+  updateMerchantStatus = (statusText, idforEdit) => {
+    const { token } = this.state;
+    console.log(idforEdit, statusText);
+
+    fetch("https://www.paylinkup.online/updateclient", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ id: idforEdit, status: statusText }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Status updated successfully:", data);
+      })
+      .catch((error) => {
+        console.error("Error updating status:", error);
+      });
+  };
+
+  fetchRatesData = async () => {
+    const { token, company_name } = this.state;
+    try {
       const response = await fetch(
-        url,
+        `https://www.paylinkup.online/ratetables?company_name=${company_name}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
       if (response.ok) {
         const data = await response.json();
-        this.setState({ [dataVariable]: data });
-        console.log(data)
+        console.log("Fetched data:", data);
+
+        if (data && data._id) {
+          this.setState({ ratesData: data, idforRatedata: data._id });
+          console.log("Fetched ID:", data._id);
+        } else {
+          console.error("Data format is incorrect or _id not found");
+          this.setState({
+            errorMessage:
+              "Data format is incorrect or _id not found. Please try again later.",
+            messageType: "fail",
+          });
+        }
       } else {
         console.error("Error fetching data:", response.statusText);
         this.setState({
@@ -114,69 +199,78 @@ class ViewMerchant extends Component {
     }
   };
 
-  fetchRatesData = async () => {
-    const { token, company_name } = this.state;
-    const backendURL = process.env.REACT_APP_BACKEND_URL;
-    try {
-      const response = await fetch(
-        `${backendURL}/ratetables?company_name=${company_name}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+  handleSave = () => {
+    const { token, idforRatedata, ratesData } = this.state;
+  
+    const updateRate = {
+      id: idforRatedata,
+      MDR: ratesData.MDR,
+      txn_app: ratesData.txn_app,
+      txn_dec: ratesData.txn_dec,
+      refund_fee: ratesData.refund_fee,
+      chargeback_fee: ratesData.chargeback_fee,
+      RR: ratesData.RR,
+      setup_fee: ratesData.setup_fee,
+      settlement_cycle: ratesData.settlement_cycle,
+      settlement_fee: ratesData.settlement_fee,
+      annual_maintenance_fee: ratesData.annual_maintenance_fee,
+      RR_remark: ratesData.RR_remark,
+      setupFee_remark: ratesData.setupFee_remark,
+      settlementFee_remark: ratesData.settlementFee_remark,
+      annualMaintenanceFee_remark: ratesData.annualMaintenanceFee_remark
+    };
+  
+    fetch(`https://www.paylinkup.online/updateratetable`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updateRate),
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
         }
-      );
-      if (response.ok) {
-        let data = await response.json();
-        this.setState({ ratesData: data });
-      } else {
-        console.error("Error fetching data:", response.statusText);
+        throw new Error("Network response was not ok.");
+      })
+      .then((data) => {
+        console.log("Data updated successfully:", data);
+        // Show success message or perform other actions upon successful update
+        this.setState({ ratesData: data.rates, isEditing: false,errorMessage: "Data Edited Successfully.",
+          messageType: "success", });
+        
+      })
+      .catch((error) => {
+        console.error("Error updating data:", error);
+        // Show error message or perform other error handling
         this.setState({
-          errorMessage: "Error in Fetching data. Please try again later.",
+          errorMessage: "Error updating data. Please try again.",
           messageType: "fail",
         });
-      }
-    } catch (error) {
-      console.error("An unexpected error occurred:", error);
-      this.setState({
-        errorMessage: "An unexpected error occurred. Please try again later.",
-        messageType: "",
+        alert("Error updating data. Please try again."); // Optional: You can remove this alert
       });
-    }
   };
 
   formatValue = (val) => {
 		return `${(val / 1000).toFixed(1)}k`;
 	};
 
-  getStatusText(status) {
-    switch (status) {
-      case "Active":
-        return (
-          <div
-            className={`status-div ${
-              this.state.isSuspended ? "pending-status" : "success-status"
-            }`}
-          >
-            <p>{this.state.isSuspended ? "Inactive" : "Active"}</p>
-          </div>
-        );
-      case "Inactive":
-        return (
-          <div
-            className={`status-div ${
-              this.state.isSuspended ? "pending-status" : "success-status"
-            }`}
-          >
-            <p>{this.state.isSuspended ? "Inactive" : "Active"}</p>
-          </div>
-        );
-      default:
-        return "";
-    }
-  }
+  handleStatusChange = () => {
+    const { isActive, idforEdit } = this.state;
+    const newStatusText = isActive ? "Inactive" : "Active";
+
+    this.setState(
+      {
+        isActive: !isActive,
+        statusText: newStatusText,
+        buttonLabel: newStatusText === "Active" ? "Suspend" : "Activate",
+      },
+      () => {
+        this.updateMerchantStatus(newStatusText, idforEdit);
+      }
+    );
+  };
 
   // handleCalenderClick = () => {
   //   console.log("clicked");
@@ -185,76 +279,32 @@ class ViewMerchant extends Component {
   //   });
   // };
 
+  
+  handleEditClick = () => {
+    this.setState({ isEditing: !this.state.isEditing });
+  };
+
+  handleChange = (e) => {
+    const { name, value } = e.target;
+    this.setState((prevState) => ({
+      ratesData: {
+        ...prevState.ratesData,
+        [name]: value,
+      },
+    }));
+  };
+
+  handleAddMerchant = () => {
+    this.setState({
+      isAddMerchantPanelOpen: !this.state.isAddMerchantPanelOpen,
+    });
+  };
+
   handleInputChange = (event) => {
     const { id, value } = event.target;
     const { overviewData } = this.state;
     const updatedOverviewData = { ...overviewData, [id]: value };
     this.setState({ overviewData: updatedOverviewData });
-  };
-
-  handleSubmit = async (event) => {
-    const backendURL = process.env.REACT_APP_BACKEND_URL;
-    event.preventDefault();
-    const { token, company_name, overviewData } = this.state;
-    try {
-      const response = await fetch(
-        `${backendURL}/updateclient?company_name=${company_name}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(overviewData),
-        }
-      );
-
-      if (response.ok) {
-      } else {
-        console.error("Error updating data:", response.statusText);
-        this.setState({
-          errorMessage: "Error in updating data. Please try again later.",
-          messageType: "fail",
-        });
-      }
-    } catch (error) {
-      console.error("An unexpected error occurred:", error);
-      this.setState({
-        errorMessage: "An unexpected error occurred. Please try again later.",
-        messageType: "",
-      });
-    }
-  };
-
-  handleReset = () => {
-    this.setState({
-      overviewData: {
-        companyName: "",
-        userName: "",
-        userEmail: "",
-        phoneNo: "",
-        postalCode: "",
-        country: "",
-        state: "",
-        city: "",
-        streetadd1: "",
-        streetadd2: "",
-        industriesId: "",
-        businessType: "",
-        businessCategory: "",
-        businessSubcategory: "",
-        businnesRegisteredOn: "",
-        merchantPayin: "",
-        merchantPayout: "",
-        turnover: "",
-        websiteURL: "",
-        settlementCharge: "",
-        chargebackPercent: "",
-        firstName: "",
-        lastName: "",
-        skype: "",
-      },
-    });
   };
 
   handleBackArrowclick = (current) => {
@@ -324,45 +374,13 @@ class ViewMerchant extends Component {
     }
   };
 
-  handleAddMerchant = () => {
-    this.setState({
-      isAddMerchantPanelOpen: !this.state.isAddMerchantPanelOpen,
-    });
-  };
-
-  handleNext = () => {
-    const { companyInfo, businessInfo } = this.state;
-    if (companyInfo) {
-      this.setState({ companyInfo: false, businessInfo: true });
-    } else if (businessInfo) {
-      this.setState({ businessInfo: false, directorInfo: true });
-    }
-  };
-
-  handleBack = () => {
-    const { businessInfo, directorInfo } = this.state;
-    if (directorInfo) {
-      this.setState({ directorInfo: false, businessInfo: true });
-    } else if (businessInfo) {
-      this.setState({ businessInfo: false, companyInfo: true });
-    }
-  };
-
-  handleSuspendClick = () => {
-    this.setState({ isSuspended: true });
-  };
-
-  handleAddMerchantClick = () => {
-    this.setState({ isSuspended: false });
-  };
-
   renderButtons = () => {
     const { overviewInfo, ratesInfo, settlementInfo } = this.state;
     return (
       <div className="btn-container">
         {overviewInfo ? (
           <button className="btn-primary btn3">
-            <PendingUserIcon className=" white-icon" width="20" height="20" />
+            <div><PendingUserIcon className=" white-icon" width="20" height="20" /></div>  
             <p>Overview</p>
           </button>
         ) : (
@@ -377,7 +395,7 @@ class ViewMerchant extends Component {
         )}
         {ratesInfo ? (
           <button className="btn-primary btn3">
-            <MerchantRates className=" white-icon" />
+            <div><MerchantRates className=" white-icon" /></div>
             <p>Rates</p>
           </button>
         ) : (
@@ -390,10 +408,12 @@ class ViewMerchant extends Component {
           </div>
         )}
         {settlementInfo ? (
-          <button className="btn-primary btn3">
-            <MerchantSettlements className=" white-icon" />
-            <p>Settlements</p>
-          </button>
+           <button className="btn-primary btn3">
+            <div>
+           <MerchantSettlements className=" white-icon"/>
+           </div>
+           <p>Settlements</p>
+         </button>
         ) : (
           <div
             onClick={() => this.handleButtonClick("settlementInfo")}
@@ -407,29 +427,35 @@ class ViewMerchant extends Component {
     );
   };
 
-  handleEditClick = () => {
-    this.setState({ isEditing: !this.state.isEditing });
-  };
-
-  handleChange = (e) => {
-    const { name, value } = e.target;
-    this.setState((prevState) => ({
-      ratesData: {
-        ...prevState.ratesData,
-        [name]: value,
-      },
-    }));
-  };
-
-  handleSave = () => {
-    this.setState({ isEditing: false });
-  };
-
   render() {
-    const { isSuspended, overviewData, isEditing, ratesData } = this.state;
+    const { isSuspended,
+      overviewData,
+      isEditing,
+      ratesData,
+      statusText,
+      buttonLabel,
+      errorMessage,
+      messageType} = this.state;
+      const getCurrencySymbol = (currencyCode) => {
+        switch (currencyCode) {
+            case 'USD':
+                return '$';
+            case 'EUR':
+                return '€';
+            default:
+                return currencyCode; 
+        }
+    };
 
     return (
       <>
+      {errorMessage && (
+          <MessageBox
+            message={errorMessage}
+            messageType={messageType}
+            onClose={() => this.setState({ errorMessage: "" })}
+          />
+        )}
         <Header />
         <Sidebar />
         <div
@@ -446,7 +472,15 @@ class ViewMerchant extends Component {
                   <img src={profile} alt="user profile"></img>
                 </div>
                 <h5>{this.state.company_name}</h5>
-                <p>{this.getStatusText(overviewData.status)}</p>
+                <div
+                  className={`status-div ${
+                    statusText === "Active"
+                      ? "success-status"
+                      : "pending-status"
+                  }`}
+                >
+                  <p>{statusText}</p>
+                  </div>
                 {this.state.showApprovalRatio && (
                   <div className="approve-volume-container">
                     <LeftSign
@@ -602,21 +636,12 @@ class ViewMerchant extends Component {
                 >
                   Edit
                 </button>
-                {isSuspended ? (
-                  <button
-                    className="btn-secondary btn-activate"
-                    onClick={this.handleAddMerchantClick}
-                  >
-                    Activate
-                  </button>
-                ) : (
-                  <button
-                    className="btn-secondary btn-suspend"
-                    onClick={this.handleSuspendClick}
-                  >
-                    Suspend
-                  </button>
-                )}
+                <button
+                   className={`btn-secondary ${statusText === 'Active' ?'btn-suspend':'btn-activate'}`}
+                  onClick={this.handleStatusChange}
+                >
+                  {buttonLabel}
+                </button>
               </div>
             </div>
             <div className="right-section">
@@ -790,20 +815,7 @@ class ViewMerchant extends Component {
                         </thead>
                         <tbody>
                           <tr>
-                            <td>
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  name="MDRName"
-                                  value={this.MDRName}
-                                  onChange={this.handleChange}
-                                  className="editable-input"
-                                  defaultValue={`MDR`}
-                                />
-                              ) : (
-                                `MDR`
-                              )}
-                            </td>
+                            <td><div className="ratesItem">MDR</div> </td>
                             <td>
                               {isEditing ? (
                                 <input
@@ -820,20 +832,7 @@ class ViewMerchant extends Component {
                             <td>-</td>
                           </tr>
                           <tr>
-                            <td>
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  name="TranAp"
-                                  value={this.TranAp}
-                                  onChange={this.handleChange}
-                                  className="editable-input"
-                                  defaultValue={`Transaction Approved`}
-                                />
-                              ) : (
-                                `Transaction Approved`
-                              )}
-                            </td>
+                            <td><div className="ratesItem">Transaction Approved</div> </td>
                             <td>
                               {isEditing ? (
                                 <input
@@ -844,26 +843,13 @@ class ViewMerchant extends Component {
                                   className="editable-input"
                                 />
                               ) : (
-                                `${ratesData.txn_app} ${ratesData.currency}`
+                                 `${ratesData.txn_app} ${getCurrencySymbol(ratesData.currency)}`
                               )}
                             </td>
                             <td>-</td>
                           </tr>
                           <tr>
-                            <td>
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  name="TranDec"
-                                  value={this.TranDec}
-                                  onChange={this.handleChange}
-                                  className="editable-input"
-                                  defaultValue={`Transaction Declined`}
-                                />
-                              ) : (
-                                `Transaction Declined`
-                              )}
-                            </td>
+                            <td><div className="ratesItem">Transaction Declined</div></td>
                             <td>
                               {isEditing ? (
                                 <input
@@ -874,26 +860,13 @@ class ViewMerchant extends Component {
                                   className="editable-input"
                                 />
                               ) : (
-                                `${ratesData.txn_dec} ${ratesData.currency}`
+                                `${ratesData.txn_dec} ${getCurrencySymbol(ratesData.currency)}`
                               )}
                             </td>
                             <td>-</td>
                           </tr>
                           <tr>
-                            <td>
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  name="Reffee"
-                                  value={this.RefFee}
-                                  onChange={this.handleChange}
-                                  className="editable-input"
-                                  defaultValue={`Refund Fees`}
-                                />
-                              ) : (
-                                `Refund Fees`
-                              )}
-                            </td>
+                            <td><div className="ratesItem">Refund Fees</div></td>
                             <td>
                               {isEditing ? (
                                 <input
@@ -904,26 +877,13 @@ class ViewMerchant extends Component {
                                   className="editable-input"
                                 />
                               ) : (
-                                `${ratesData.refund_fee} ${ratesData.currency}`
+                                `${ratesData.refund_fee} ${getCurrencySymbol(ratesData.currency)}`
                               )}
                             </td>
                             <td>-</td>
                           </tr>
                           <tr>
-                            <td>
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  name="ChrgFee"
-                                  value={this.ChrgFee}
-                                  onChange={this.handleChange}
-                                  className="editable-input"
-                                  defaultValue={`Chargeback Fees`}
-                                />
-                              ) : (
-                                `Chargeback Fees`
-                              )}
-                            </td>
+                            <td><div className="ratesItem">Chargeback Fees</div></td>
                             <td>
                               {isEditing ? (
                                 <input
@@ -934,26 +894,13 @@ class ViewMerchant extends Component {
                                   className="editable-input"
                                 />
                               ) : (
-                                `${ratesData.chargeback_fee} ${ratesData.currency}`
+                                `${ratesData.chargeback_fee} ${getCurrencySymbol(ratesData.currency)}`
                               )}
                             </td>
                             <td>-</td>
                           </tr>
                           <tr>
-                            <td>
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  name="RollFee"
-                                  value={this.RollFee}
-                                  onChange={this.handleChange}
-                                  className="editable-input"
-                                  defaultValue={`Rolling Reserve`}
-                                />
-                              ) : (
-                                `Rolling Reserve`
-                              )}
-                            </td>
+                            <td><div className="ratesItem">Rolling Reserve</div></td>
                             <td>
                               {isEditing ? (
                                 <input
@@ -971,32 +918,19 @@ class ViewMerchant extends Component {
                               {isEditing ? (
                                 <input
                                   type="text"
-                                  name="fordays"
-                                  value={this.fordays}
+                                  name="RR_remark"
+                                  value={ratesData.RR_remark}
                                   onChange={this.handleChange}
                                   className="editable-input"
-                                  defaultValue={`for 180 Days`}
+
                                 />
                               ) : (
-                                `for 180 Days`
+                                `${ratesData.RR_remark}`
                               )}
                             </td>
                           </tr>
                           <tr>
-                            <td>
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  name="setsFee"
-                                  value={this.setsFee}
-                                  onChange={this.handleChange}
-                                  className="editable-input"
-                                  defaultValue={`Setup Fees`}
-                                />
-                              ) : (
-                                `Setup Fees`
-                              )}
-                            </td>
+                            <td><div className="ratesItem">Setup Fees</div></td>
                             <td>
                               {isEditing ? (
                                 <input
@@ -1007,39 +941,25 @@ class ViewMerchant extends Component {
                                   className="editable-input"
                                 />
                               ) : (
-                                `${ratesData.setup_fee} ${ratesData.currency}`
+                                `${ratesData.setup_fee} ${getCurrencySymbol(ratesData.currency)}`
                               )}
                             </td>
                             <td>
                               {isEditing ? (
                                 <input
                                   type="text"
-                                  name="chrgfirstset"
-                                  value={this.chrgfirstset}
+                                  name="setupFee_remark"
+                                  value={ratesData.setupFee_remark}
                                   onChange={this.handleChange}
                                   className="editable-input"
-                                  defaultValue={`Charged from first settlement`}
                                 />
                               ) : (
-                                `Charged from first settlement`
+                                `${ratesData.setupFee_remark}`
                               )}
                             </td>
                           </tr>
                           <tr>
-                            <td>
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  name="setCycl"
-                                  value={this.setCycl}
-                                  onChange={this.handleChange}
-                                  className="editable-input"
-                                  defaultValue={`Settlement Cycle`}
-                                />
-                              ) : (
-                                `Settlement Cycle`
-                              )}
-                            </td>
+                            <td><div className="ratesItem">Settlement Cycle</div></td>
                             <td>
                               {isEditing ? (
                                 <input
@@ -1056,20 +976,7 @@ class ViewMerchant extends Component {
                             <td>-</td>
                           </tr>
                           <tr>
-                            <td>
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  name="setFee"
-                                  value={this.setFee}
-                                  onChange={this.handleChange}
-                                  className="editable-input"
-                                  defaultValue={`Settlement Fees`}
-                                />
-                              ) : (
-                                `Settlement Fees`
-                              )}
-                            </td>
+                            <td><div className="ratesItem">Settlement Fees</div></td>
                             <td>
                               {isEditing ? (
                                 <input
@@ -1088,32 +995,18 @@ class ViewMerchant extends Component {
                               {isEditing ? (
                                 <input
                                   type="text"
-                                  name="usdtSet"
-                                  value={this.usdtSet}
+                                  name="settlementFee_remark"
+                                  value={ratesData.settlementFee_remark}
                                   onChange={this.handleChange}
                                   className="editable-input"
-                                  defaultValue={`USDT settlement`}
                                 />
                               ) : (
-                                `USDT settlement`
+                                `${ratesData.settlementFee_remark}`
                               )}
                             </td>
                           </tr>
                           <tr>
-                            <td>
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  name="anulmainfee"
-                                  value={this.anulmainfee}
-                                  onChange={this.handleChange}
-                                  className="editable-input"
-                                  defaultValue={`Annual Maintenance Fees`}
-                                />
-                              ) : (
-                                `Annual Maintenance Fees`
-                              )}
-                            </td>
+                            <td><div className="ratesItem">Annual Maintenance Fees</div></td>
                             <td>
                               {isEditing ? (
                                 <input
@@ -1124,21 +1017,20 @@ class ViewMerchant extends Component {
                                   className="editable-input"
                                 />
                               ) : (
-                                `${ratesData.annual_maintenance_fee} ${ratesData.currency}`
+                                `${ratesData.annual_maintenance_fee} ${getCurrencySymbol(ratesData.currency)}`
                               )}
                             </td>
                             <td>
                               {isEditing ? (
                                 <input
                                   type="text"
-                                  name="chrgfirstset"
-                                  value={this.chrgfirstset}
+                                  name=" annualMaintenanceFee_remark"
+                                  value={ratesData.annualMaintenanceFee_remark}
                                   onChange={this.handleChange}
                                   className="editable-input"
-                                  defaultValue={`Charged from first settlement and payable annually`}
                                 />
                               ) : (
-                                `Charged from first settlement and payable annually`
+                              `${ratesData.annualMaintenanceFee_remark}`
                               )}
                             </td>
                           </tr>
@@ -1171,471 +1063,11 @@ class ViewMerchant extends Component {
                   </div>
                 )}
                 {this.state.isAddMerchantPanelOpen && (
-                  <>
-                    {" "}
-                    <div className="overlay"></div>
-                    <div className="sendPanel">
-                      <div className="sendPanel-header">
-                        {" "}
-                        <h5>Add New Merchant</h5>
-                        <Close
-                          className="icon"
-                          onClick={() => this.handleAddMerchant()}
-                        ></Close>
-                      </div>
-                      <div className="sendPanel-body add-merchant-body">
-                        {/* Company Info */}
-                        {this.state.companyInfo && (
-                          <div className="add-merchant-form">
-                            <p className="p2">Company Info</p>
-                            <form onSubmit={this.handleSubmit}>
-                              <div className="add-merchant-form-top">
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="company_name"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.company_name}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="companyName"
-                                    className="inputLabel"
-                                  >
-                                    Company Name
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="username"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.username}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="userName"
-                                    className="inputLabel"
-                                  >
-                                    Username
-                                  </label>
-                                </div>
-
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="email"
-                                    id="email"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.email}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="password"
-                                    className="inputLabel"
-                                  >
-                                    Email
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="phone_number"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.phone_number}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="phoneNo"
-                                    className="inputLabel"
-                                  >
-                                    Phone Number
-                                  </label>
-                                </div>
-
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="postal_code"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.postal_code}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="postalCode"
-                                    className="inputLabel"
-                                  >
-                                    Postal Code
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="country"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.country}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="country"
-                                    className="inputLabel"
-                                  >
-                                    Country/Region
-                                  </label>
-                                </div>
-
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="state"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.state}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label htmlFor="state" className="inputLabel">
-                                    State
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="city"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.city}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label htmlFor="city" className="inputLabel">
-                                    City
-                                  </label>
-                                </div>
-
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="street_address"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.street_address}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="streetadd1"
-                                    className="inputLabel"
-                                  >
-                                    Street Address
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="street_address2"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.street_address2}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="streetadd2"
-                                    className="inputLabel"
-                                  >
-                                    Street Address 2
-                                  </label>
-                                </div>
-
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="industries_id"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.industries_id}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="industriesId"
-                                    className="inputLabel"
-                                  >
-                                    Industries Id
-                                  </label>
-                                </div>
-                              </div>
-                              <div className="add-merchant-form-bottom">
-                                <button
-                                  type="submit"
-                                  className="add-merchant-panel-btn"
-                                  onClick={this.handleNext}
-                                >
-                                  <RightArrow />
-                                </button>
-                              </div>
-                            </form>
-                          </div>
-                        )}
-
-                        {/* Business Info */}
-                        {this.state.businessInfo && (
-                          <div className="add-merchant-form">
-                            <p className="p2">Business Info</p>
-                            <form onSubmit={this.handleSubmit}>
-                              <div className="add-merchant-form-top">
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="business_type"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.business_type}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="businessType"
-                                    className="inputLabel"
-                                  >
-                                    Business Type
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="business_category"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.business_category}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="businessCategory"
-                                    className="inputLabel"
-                                  >
-                                    Business Category
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="business_subcategory"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.business_subcategory}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="businessSubcategory"
-                                    className="inputLabel"
-                                  >
-                                    Business Subcategory
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="date"
-                                    id="business_registered_on"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.business_registered_on}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="businnesRegisteredOn"
-                                    className="inputLabel"
-                                  >
-                                    Business Registered On
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="merchant_pay_in"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.merchant_pay_in}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="merchantPayin"
-                                    className="inputLabel"
-                                  >
-                                    Merchant Pay In
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="merchant_pay_out"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.merchant_pay_out}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="merchantPayout"
-                                    className="inputLabel"
-                                  >
-                                    Merchant Pay Out
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="turnover"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.turnover}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="turnover"
-                                    className="inputLabel"
-                                  >
-                                    Turnover
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="website_url"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.website_url}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="websiteURL"
-                                    className="inputLabel"
-                                  >
-                                    Website URL
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="settlement_charge"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.settlement_charge}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="settlementCharge"
-                                    className="inputLabel"
-                                  >
-                                    Settlement Charge
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="expected_chargeback_percentage"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={
-                                      overviewData.expected_chargeback_percentage
-                                    }
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="chargebackPercent"
-                                    className="inputLabel"
-                                  >
-                                    Expected Chargeback Percentage
-                                  </label>
-                                </div>
-                              </div>
-                              <div className="add-merchant-form-bottom">
-                                <button
-                                  className="add-merchant-panel-btn"
-                                  onClick={this.handleBack}
-                                >
-                                  <LeftArrow />
-                                </button>
-                                <button
-                                  type="submit"
-                                  className="add-merchant-panel-btn"
-                                  onClick={this.handleNext}
-                                >
-                                  <RightArrow />
-                                </button>
-                              </div>
-                            </form>
-                          </div>
-                        )}
-
-                        {/*Director Info */}
-                        {this.state.directorInfo && (
-                          <div className="add-merchant-form">
-                            <p className="p2">Director Info</p>
-                            <form onSubmit={this.handleSubmit}>
-                              <div className="add-merchant-form-top">
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="director_first_name"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.director_first_name}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="firstName"
-                                    className="inputLabel"
-                                  >
-                                    First Name
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="director_last_name"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.director_last_name}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label
-                                    htmlFor="lastName"
-                                    className="inputLabel"
-                                  >
-                                    Last Name
-                                  </label>
-                                </div>
-                                <div className="input-group add-merchant-input-group">
-                                  <input
-                                    type="text"
-                                    id="skype_id"
-                                    className="inputFeild add-merchant-input"
-                                    required
-                                    value={overviewData.skype_id}
-                                    onChange={this.handleInputChange}
-                                  />
-                                  <label htmlFor="skype" className="inputLabel">
-                                    Skype Id
-                                  </label>
-                                </div>
-                              </div>
-                              <div className="add-merchant-form-bottom">
-                                <button
-                                  className="add-merchant-panel-btn"
-                                  onClick={this.handleBack}
-                                >
-                                  <LeftArrow />
-                                </button>
-                                <button type="submit" className="btn-primary">
-                                  Submit
-                                </button>
-                              </div>
-                            </form>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </>
+                  <MerchantForm
+                    handleAddMerchant={this.handleAddMerchant}
+                    merchantData={overviewData}
+                    isAddMerchantPanelOpen={this.state.isAddMerchantPanelOpen}
+                  />
                 )}
               </div>
             </div>

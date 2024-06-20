@@ -1662,6 +1662,7 @@ td:last-child {
 	display: flex;
 	justify-content: center;
 	background-color: var(--success-color);
+	border: none;
 }
 
 .right-header-second-row {
@@ -1675,15 +1676,15 @@ td:last-child {
 	width: 48%;
 	margin: 0;
 	padding: 10px 0;
-	border: 1px solid var(--primary-dark);
+	border: 1px solid var(--secondary-dark);
 	color: var(--light-text);
 	background-color: var(--white);
 }
 
 .btn3 {
 	margin: 10px 0;
-	/* width: 100%;
-	display: flex;
+	width: 100%;
+	/* display: flex;
 	justify-content: center; */
 }
 
@@ -2747,63 +2748,50 @@ border-bottom: none !important;
 .custom-tooltip-container {
 	position: relative;
 	display: inline-block;
-}
-
-.custom-tooltip-content {
+  }
+  
+  .custom-tooltip-content {
 	position: relative;
-}
-
-.custom-tooltip-title {
+  }
+  
+  .custom-tooltip-title,
+  .custom-tooltip-details {
 	display: none;
 	position: absolute;
-	font-size: 12px;
-	top: calc(100% + 8px);
-	left: 50%;
-	transform: translateX(-50%);
-	padding: 0 12px;
 	background: #333;
 	color: #fff;
 	border-radius: 4px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-	white-space: nowrap;
-	z-index: 1;
 	opacity: 0;
 	transition: opacity 0.3s;
-}
-
-.custom-tooltip-details {
-	display: none;
-	position: absolute;
-	top: calc(100% + 10px);
-	left: -70px;
+	z-index: 99 !important;
+  }
+  
+  .custom-tooltip-title {
+	font-size: 14px;
+	top: calc(100% + 8px);
+	left: 50%;
 	transform: translateX(-50%);
+	padding: 0 12px;
+	white-space: nowrap;
+  }
+  
+  .custom-tooltip-details {
+	top: 30px;
+	
 	background: linear-gradient(to bottom, #4e4e4e, #333);
-	color: #fff;
 	border-radius: 8px;
-	min-width: 200px;
 	padding: 10px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-	z-index: 1;
-	text-align: left;
 	transition: opacity 0.3s, transform 0.3s;
-}
-
-.custom-tooltip-container:hover .custom-tooltip-title,
-.custom-tooltip-container:hover .custom-tooltip-details {
+  }
+  
+  .custom-tooltip-container:hover .custom-tooltip-title,
+  .custom-tooltip-container:hover .custom-tooltip-details {
 	display: block;
-}
-
-.custom-tooltip-container:hover .custom-tooltip-title {
-	transform: translate(-50%, -8px);
 	opacity: 0.95;
-}
+  }
 
-.custom-tooltip-container:hover .custom-tooltip-details {
-	transform: translate(-50%, -12px);
-	opacity: 0.95;
-}
-
-.custom-tooltip-details ul {
+  .custom-tooltip-details ul {
 	list-style-type: disc;
 	padding-left: 20px;
 }
@@ -4041,9 +4029,15 @@ width: 100px;
 	color: var(--light-text);
 	border-bottom: 1px solid var(--border-gray);
 	outline: none;
-	width: 200px;
+	width:200px;
 	margin: -60px 13px;
 	border-radius: 2px;
+	text-align: center;
+}
+
+.ratesItem{
+	text-align: left;
+	padding-left: 50px;
 }
 
 .settelmentimg {
@@ -4236,37 +4230,108 @@ width: 100px;
 
 /* --------------------- Scroll to Top ----------------------- */
 .scroll-to-top-button {
-	display: flex;
-	align-items: center;
-	justify-content: center;
 	position: fixed;
-	bottom: 2%;
-	right: 1%;
-	width: 30px;
-	height: 30px;
+	bottom: 1%;
+	right: 2%;
+	width: 35px;
+	height: 35px;
 	padding: 5px;
+	font-size: 16px;
 	background-color: var(--primary);
+	color: #fff;
 	border: none;
 	border-radius: 50%;
 	cursor: pointer;
 	opacity: 0;
-	z-index: 9999;
 	transition: opacity 0.3s;
-}
+	z-index: 30;
+  }
 
-.scroll-to-top-button:hover{
-	background-color: var(--primary-dark);
-}
+
 
 .top-icon {
 	width: 25px;
 	height: 25px;
 	align-items: center;
 	transition: all 0.2s ease-in-out;
-	fill:var(--white)
+}
+
+.scroll-to-top-button:hover {
+	background-color: var(--primary-dark);
 }
 
 .scroll-to-top-button.show {
+	opacity: 1;
+}
+
+/* --------------------- Scroll to Bottom ----------------------- */
+
+.scroll-to-bottom-button {
+	position: relative;
+	top: 40%;
+	right: 5%;
+	left: 0%;
+	width: 35px;
+	height: 35px;
+	padding: 5px;
+	font-size: 16px;
+	background-color: var(--primary);
+	color: #fff;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	opacity: 0;
+	z-index: 9999999999;
+	transition: opacity 0.3s;
+  }
+
+.bottom-icon {
+	width: 25px;
+	height: 25px;
+	align-items: center;
+	transition: all 0.2s ease-in-out;
+}
+
+.scroll-to-bottom-button:hover {
+	background-color: var(--primary-dark);
+}
+
+.scroll-to-bottom-button.show {
+	opacity: 1;
+}
+
+/* -----------------Scroll Table to Top ----------------------- */
+
+.scrollTable-to-top-button {
+	position: sticky;
+	bottom: 1%;
+	left: 94%;
+	width: 35px;
+	height: 35px;
+	padding: 5px;
+	font-size: 16px;
+	background-color: var(--primary);
+	color: #fff;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 0.3s;
+	z-index: 30;
+  }
+
+.top-icon {
+	width: 25px;
+	height: 25px;
+	align-items: center;
+	transition: all 0.2s ease-in-out;
+}
+
+.scrollTable-to-top-button:hover {
+	background-color: var(--primary-dark);
+}
+
+.scrollTable-to-top-button.show {
 	opacity: 1;
 }
 
@@ -4508,7 +4573,7 @@ width: 100px;
 	right: 10px;
 } 
 
-@keyframes zoomIn {
+@keyframes zoom {
 	0% {
 	  transform: scale(1);
 	}
@@ -4521,7 +4586,7 @@ width: 100px;
   }
   
   .zoom {
-	animation: zoomIn 0.3s ease-in-out;
+	animation: zoom 0.3s ease-in-out;
   }
   
   

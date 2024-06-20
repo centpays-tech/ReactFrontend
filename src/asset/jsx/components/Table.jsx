@@ -5,6 +5,9 @@ import { DownSign, RightSign, UpSign, LeftSign } from "../../media/icon/SVGicons
 
 import visa from "../../media/icon/logoVisa.png";
 import mastercard from "../../media/icon/LogoMastercard.png"
+import CopyToClipboard from "./CopyToClipboard";
+import ScrollTableToBottomButton from "../components/ScrollTableToBottom";
+import ScrollTableToTopButton from "../components/ScrollTableToTop";
 
 class Table extends Component {
   constructor(props) {
@@ -116,7 +119,7 @@ class Table extends Component {
                   {headerLabels.slice(0, 7).map((item, index) => (
                     <th className="p1" key={index}>{item.heading}</th>
                   ))}
-                  <th></th>
+                  <th>{<ScrollTableToBottomButton/>}</th>
                 </tr>
               </thead>
               <tbody>
@@ -129,10 +132,14 @@ class Table extends Component {
                       <td>{startIndex + index + 1}</td>
                       {headerLabels.slice(0, 7).map((collabel, labelIndex) => (
                         <td key={labelIndex}>
-                          {collabel.id === 5
-                            ? this.getStatusText(row[collabel.label])
-                            : row[collabel.label]}
-                        </td>
+                          {collabel.id === 1 || collabel.id === 2 ? (
+                        <CopyToClipboard text={row[collabel.label]} />
+                      ) : (
+                        collabel.id === 5
+                          ? this.getStatusText(row[collabel.label])
+                          : row[collabel.label]
+                      )}
+                    </td>
                       ))}
                       <td onClick={() => onViewClick(row)}>
                         <RightSign className="icon2" />
@@ -160,6 +167,7 @@ class Table extends Component {
                     )}
                   </React.Fragment>
                 ))}
+                <ScrollTableToTopButton/>
                 <tr className="p2 total-amount-row">
                   <td className="txn-amount-blank" colSpan={4}></td>
                   <td className="txn-amount-head" colSpan={4}>Subtotal</td>
