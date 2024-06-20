@@ -1,4 +1,15 @@
 /* ------------------------------ Default Global CSS ------------------------------ */
+.employeeDashboard{
+	background-color: white;
+	height: 85vh;
+	width: 98%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 30px;
+	box-shadow: var(--box-shadow);
+}
+
 * {
 	margin: 0;
 	padding: 0;
