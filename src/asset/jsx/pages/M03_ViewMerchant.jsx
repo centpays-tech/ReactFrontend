@@ -58,7 +58,7 @@ class ViewMerchant extends Component {
       isEditing: false,
       isSuspended: false,
     
-      // fromDate: "22/5/24",
+      fromDate: "22/5/24",
       // toDate: "22/5/24"
     };
   }
