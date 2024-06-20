@@ -6,7 +6,8 @@ import MessageBox from "./Message_box";
 import MerchantForm from "./Merchant_Form";
 
 //SVG icons
-import { RightSign, LeftSign } from "../../media/icon/SVGicons";
+import { RightSign, Oops, LeftSign } from "../../media/icon/SVGicons";
+import searchImg from "../../media/image/search-transaction.png"
 
 class Table extends Component {
   constructor(props) {
@@ -20,31 +21,33 @@ class Table extends Component {
       token: localStorage.getItem("token"),
       isAddMerchantPanelOpen: false,
       merchantData: {
-        companyName: "",
-        userName: "",
-        userEmail: "",
-        phoneNo: "",
-        postalCode: "",
+        company_name: "",
+        username: "",
+        email: "",
+        phone_number: "",
+        postal_code: "",
         country: "",
         state: "",
         city: "",
-        streetadd1: "",
-        streetadd2: "",
-        industriesId: "",
-        businessType: "",
-        businessCategory: "",
-        businessSubcategory: "",
-        businnesRegisteredOn: "",
-        merchantPayin: "",
-        merchantPayout: "",
+        street_address: "",
+        street_address2: "",
+        industries_id: "",
+        business_type: "",
+        business_category: "",
+        business_subcategory: "",
+        buiness_registered_on: "",
+        merchant_pay_in: "",
+        merchant_pay_out: "",
         turnover: "",
-        websiteURL: "",
-        settlementCharge: "",
-        chargebackPercent: "",
-        firstName: "",
-        lastName: "",
-        skype: ""
+        website_url: "",
+        settlement_charge: "",
+        expected_chargeback_percentage: "",
+        director_first_name: "",
+        director_last_name: "",
+        skype_id: "",
       },
+      rowsPerPage: 10,
+      currentPage: 1,
     };
   }
 
@@ -96,16 +99,38 @@ class Table extends Component {
     });
   };
 
+  handleRowsChange = (event) => {
+    this.setState({
+      rowsPerPage: parseInt(event.target.value, 10),
+      currentPage: 1,
+    });
+  };
+
+  handlePageChange = (direction) => {
+    this.setState((prevState) => ({
+      currentPage: prevState.currentPage + direction,
+    }));
+  };
+
   render() {
-    const { headerLabels, showMerchants } = this.props;
+    const { headerLabels, showMerchants, apiData } = this.props;
     const {
       highlightedOptions,
       errorMessage,
       searchText,
       noResultsFound,
+      rowsPerPage,
+      currentPage,
     } = this.state;
+
     const dataToRender =
       highlightedOptions.length > 0 ? highlightedOptions : this.props.apiData;
+
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const paginatedData = dataToRender.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(dataToRender.length / rowsPerPage);
+
     return (
       <>
         {errorMessage && (
@@ -122,7 +147,7 @@ class Table extends Component {
               placeholder="Search"
               onChange={this.handleSearch}
               value={searchText}
-            ></input>
+            />
             {showMerchants && (
               <button
                 className="btn-primary"
@@ -131,70 +156,101 @@ class Table extends Component {
                 Add New Merchant
               </button>
             )}
-            {this.state.isAddMerchantPanelOpen &&
-              <MerchantForm handleAddMerchant={this.handleAddMerchant} merchantData={this.state.merchantData} isAddMerchantPanelOpen={this.state.isAddMerchantPanelOpen} />
-            }
+            {this.state.isAddMerchantPanelOpen && (
+              <MerchantForm
+                handleAddMerchant={this.handleAddMerchant}
+                merchantData={this.state.merchantData}
+                isAddMerchantPanelOpen={this.state.isAddMerchantPanelOpen}
+              />
+            )}
           </div>
           <div className="table-Body">
             <table>
-              <thead>
-                <tr>
-                  <th className="p1">S.No.</th>
-                  {headerLabels.map((item) => (
-                    <th className="p1">{item.heading}</th>
-                  ))}
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-              {noResultsFound ? (
-              <tr>
-                <td colSpan={headerLabels.length + (showMerchants ? 2 : 1)}>No results found.</td>
-              </tr>
-            ) : (dataToRender.map((row, index) => (
-                  <tr className="p2" key={index}>
-                    <td>{index + 1}</td>
-                    {headerLabels.map((collabel, labelIndex) => (
-                      <td key={labelIndex}>
-                        {collabel.id === 2 && showMerchants
-                          ? this.getStatusText(row[collabel.label])
-                          : row[collabel.label]}
-                      </td>
+              {!noResultsFound && (
+                <thead>
+                  <tr>
+                    <th className="p1">S.No.</th>
+                    {headerLabels.map((item) => (
+                      <th key={item.label} className="p1">
+                        {item.heading}
+                      </th>
                     ))}
-
-                    {showMerchants && (
-                      <td>
-                        <Link to={`/viewmerchant/${row.company_name}`}>
-                          <RightSign
-                            className="icon2"
-                            title="View More"
-                          ></RightSign>
-                        </Link>
-                      </td>
-                    )}
+                    {showMerchants && <th></th>}
                   </tr>
-                 ))
-                )}
-              </tbody>
+                </thead>
+              )}
+              {!noResultsFound ? (
+                <tbody>
+                  {paginatedData.map((row, index) => (
+                    <tr className="p2" key={index}>
+                      <td>{startIndex + index + 1}</td>
+                      {headerLabels.map((collabel, labelIndex) => (
+                        <td key={labelIndex}>
+                          {collabel.id === 2 && showMerchants
+                            ? this.getStatusText(row[collabel.label])
+                            : row[collabel.label]}
+                        </td>
+                      ))}
+                      {showMerchants && (
+                        <td>
+                          <Link to={`/viewmerchant/${row.company_name}`}>
+                            <RightSign className="icon2" title="View More" />
+                          </Link>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              ) : (
+                <tbody>
+                  <tr>
+                    <td colSpan={headerLabels.length + (showMerchants ? 2 : 1)}>
+                      <div className="searchTxn-result">
+                        <div className="searchTxn-result-head">
+                          <div>
+                            <h4>Oops...</h4> <Oops className="primary-color-icon" />
+                          </div>
+                          <p className="p2">We couldn't find what you are looking for</p>
+                        </div>
+                        <div className="search-result-img">
+                          <img src={searchImg} alt="search" className="full-width-img" />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              )}
             </table>
           </div>
-          <div className="table-Footer">
-            <div className="table-footer-rows-div">
-              <label htmlFor="noRows">Rows per page</label>
-              <select id="noRows" value={this.state.rows} onChange={this.handleRowschange}>
-                <option value={10} selected>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </select>
+          {!noResultsFound && (
+            <div className="table-Footer">
+              <div className="table-footer-rows-div">
+                <label htmlFor="noRows">Rows per page</label>
+                <select id="noRows" value={rowsPerPage} onChange={this.handleRowsChange}>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+              <div className="table-footer-buttons-div">
+                <p>
+                  {`${startIndex + 1}-${Math.min(endIndex, dataToRender.length)} of ${dataToRender.length}`}
+                </p>
+                <button
+                  onClick={() => this.handlePageChange(-1)}
+                  disabled={currentPage === 1}
+                >
+                  <LeftSign />
+                </button>
+                <button
+                  onClick={() => this.handlePageChange(1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <RightSign />
+                </button>
+              </div>
             </div>
-            <div className="table-footer-buttons-div">
-              <p>
-                {"1"}-{"10"} of {"400"}
-              </p>
-              <button><LeftSign /></button>
-              <button><RightSign /></button>
-            </div>
-          </div>
+          )}
         </div>
       </>
     );

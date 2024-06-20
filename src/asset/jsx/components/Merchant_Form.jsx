@@ -18,6 +18,7 @@ class MerchantForm extends Component {
       businessInfo: false,
       directorInfo: false,  
       ...props.merchantData,
+      isUpdate:false,
     };
   }
 
@@ -53,138 +54,142 @@ class MerchantForm extends Component {
 
     if (companyInfo) {
       this.setState({
-        companyName: "",
-        userName: "",
-        userEmail: "",
-        phoneNo: "",
-        postalCode: "",
+        company_name: "",
+        username: "",
+        email: "",
+        phone_number: "",
+        postal_code: "",
         country: "",
         state: "",
         city: "",
-        streetadd1: "",
-        streetadd2: "",
-        industriesId: "",
+        street_address: "",
+        street_address2: "",
+        industries_id: "",
       });
     } else if (businessInfo) {
       this.setState({
-        businessType: "",
-        businessCategory: "",
-        businessSubcategory: "",
-        businnesRegisteredOn: "",
-        merchantPayin: "",
-        merchantPayout: "",
+        business_type: "",
+        business_category: "",
+        business_subcategory: "",
+        business_registered_on: "",
+        merchant_pay_in: "",
+        merchant_pay_out: "",
         turnover: "",
-        websiteURL: "",
-        settlementCharge: "",
-        chargebackPercent: "",
+        website_url: "",
+        settlement_charge: "",
+        expected_chargeback_percentage: "",
       });
     } else if (directorInfo) {
       this.setState({
-        firstName: "",
-        lastName: "",
-        skype: "",
+        director_first_name: "",
+        director_last_name: "",
+        skype_id: "",
       });
     }
   };
 
   handleSubmit = async (event) => {
-    const backendURL = process.env.REACT_APP_BACKEND_URL;
     event.preventDefault();
-    const {
-      companyInfo,
-      businessInfo,
-      directorInfo,
-      token,
-    } = this.state;
-
+    const backendURL = process.env.REACT_APP_BACKEND_URL;
+    const { companyInfo, businessInfo, directorInfo, token } = this.state;
+  
+    // Prepare the data to be sent
+    const newData = {
+      company_name: this.state.company_name,
+      username: this.state.username,
+      email: this.state.email,
+      phone_number: this.state.phone_number,
+      postal_code: this.state.postal_code,
+      country: this.state.country,
+      state: this.state.state,
+      city: this.state.city,
+      street_address: this.state.street_address,
+      street_address2: this.state.street_address2,
+      industries_id: this.state.industries_id,
+      business_type: this.state.business_type,
+      business_category: this.state.business_category,
+      business_subcategory: this.state.business_subcategory,
+      business_registered_on: this.state.business_registered_on,
+      merchant_pay_in: this.state.merchant_pay_in,
+      merchant_pay_out: this.state.merchant_pay_out,
+      turnover: this.state.turnover,
+      website_url: this.state.website_url,
+      settlement_charge: this.state.settlement_charge,
+      expected_chargeback_percentage: this.state.expected_chargeback_percentage,
+      director_first_name: this.state.director_first_name,
+      director_last_name: this.state.director_last_name,
+      skype_id: this.state.skype_id,
+    };
+    const isUpdate = !!this.state._id;
+  
+    const url = isUpdate ? `${backendURL}/updateclient/` : `${backendURL}/clients`;
+    const method = isUpdate ? "PATCH" : "POST";
+    const data = isUpdate ? { id: this.state._id, ...newData } : newData;
+  
     if (companyInfo) {
       this.setState({ companyInfo: false, businessInfo: true });
     } else if (businessInfo) {
       this.setState({ businessInfo: false, directorInfo: true });
     } else if (directorInfo) {
-        const data = {
-          company_name: this.state.companyName,
-          username: this.state.userName,
-          email: this.state.userEmail,
-          phone_number: this.state.phoneNo,
-          postal_code: this.state.postalCode,
-          country: this.state.country,
-          state: this.state.state,
-          city: this.state.city,
-          street_address: this.state.streetadd1,
-          street_address2: this.state.streetadd2,
-          industries_id: this.state.industriesId,
-          business_type: this.state.businessType,
-          business_category: this.state.businessCategory,
-          business_subcategory: this.state.businessSubcategory,
-          buiness_registered_on: this.state.businnesRegisteredOn,
-          merchant_pay_in: this.state.merchantPayin,
-          merchant_pay_out: this.state.merchantPayout,
-          turnover: this.state.turnover,
-          website_url: this.state.websiteURL,
-          settlement_charge: this.state.settlementCharge,
-          expected_chargeback_percentage: this.state.chargebackPercent,
-          director_first_name: this.state.firstName,
-          director_last_name: this.state.lastName,
-          skype_id: this.state.skype,
-        };
-        console.log(data);
-        try {
-          const response = await fetch(`${backendURL}/clients`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(data),
-          });
-          
-          this.setState({ companyInfo: true, directorInfo: false });
-          if (response.ok) {
-            this.setState({
-              errorMessage: "Data Submitted Successfully",
-              messageType: "success",
-              companyName: "",
-              userName: "",
-              userEmail: "",
-              phoneNo: "",
-              postalCode: "",
-              country: "",
-              state: "",
-              city: "",
-              streetadd1: "",
-              streetadd2: "",
-              industriesId: "",
-              businessType: "",
-              businessCategory: "",
-              businessSubcategory: "",
-              businnesRegisteredOn: "",
-              merchantPayin: "",
-              merchantPayout: "",
-              turnover: "",
-              websiteURL: "",
-              settlementCharge: "",
-              chargebackPercent: "",
-              firstName: "",
-              lastName: "",
-              skype: "",
-            });
-          } else {
-            this.setState({
-              errorMessage: "Please fill all the fields",
-              messageType: "fail",
-            });
-          }
-        } catch (error) {
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        });
+  
+        if (response.ok) {
           this.setState({
-            errorMessage: "Error submitting data",
+            errorMessage: isUpdate ? "Data Updated Successfully" : "Data Submitted Successfully",
+            messageType: "success",
+            companyInfo: true,
+            businessInfo: false,
+            directorInfo: false,
+            company_name: "",
+            username: "",
+            email: "",
+            phone_number: "",
+            postal_code: "",
+            country: "",
+            state: "",
+            city: "",
+            street_address: "",
+            street_address2: "",
+            industries_id: "",
+            business_type: "",
+            business_category: "",
+            business_subcategory: "",
+            business_registered_on: "",
+            merchant_pay_in: "",
+            merchant_pay_out: "",
+            turnover: "",
+            website_url: "",
+            settlement_charge: "",
+            expected_chargeback_percentage: "",
+            director_first_name: "",
+            director_last_name: "",
+            skype_id: "",
+          });
+        } else {
+          const errorData = await response.json();
+          this.setState({
+            errorMessage: errorData.message || "Please fill all the fields",
             messageType: "fail",
           });
-          console.log(error);
         }
+      } catch (error) {
+        this.setState({
+          errorMessage: "Error submitting data",
+          messageType: "fail",
+        });
+        console.error(error);
+      }
     }
   };
-
+  
   render() {
   const {handleAddMerchant} = this.props
     const {
@@ -210,7 +215,6 @@ class MerchantForm extends Component {
                     ></Close>
                   </div>
                   <div className="sendPanel-body add-merchant-body">
-                    {/* {/ Company Info /} */}
                     {this.state.companyInfo && (
                       <div className="add-merchant-form">
                         <p className="p2">Company Info</p>
@@ -219,9 +223,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="companyName"
+                                 id="company_name"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.companyName}
+                                value={this.state.company_name}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -234,9 +238,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="userName"
+                                id="username"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.userName}
+                                value={this.state.username}
                                 onChange={this.handleInputChange}
                               />
                               <label htmlFor="userName" className="inputLabel">
@@ -247,9 +251,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="email"
-                                id="userEmail"
+                                id="email"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.userEmail}
+                                value={this.state.email}
                                 onChange={this.handleInputChange}
                               />
                               <label htmlFor="password" className="inputLabel">
@@ -259,9 +263,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="phoneNo"
+                                id="phone_number"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.phoneNo}
+                                value={this.state.phone_number}
                                 onChange={this.handleInputChange}
                               />
                               <label htmlFor="phoneNo" className="inputLabel">
@@ -272,9 +276,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="postalCode"
+                                id="postal_code"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.postalCode}
+                                value={this.state.postal_code}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -325,9 +329,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="streetadd1"
+                                id="street_address"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.streetadd1}
+                                value={this.state.street_address}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -340,9 +344,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="streetadd2"
+                                id="street_address2"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.streetadd2}
+                                value={this.state.street_address2}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -356,9 +360,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="industriesId"
+                                id="industries_id"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.industriesId}
+                                value={this.state.industries_id}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -393,9 +397,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="businessType"
+                                 id="business_type"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.businessType}
+                                value={this.state.business_type}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -408,9 +412,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="businessCategory"
+                                id="business_category"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.businessCategory}
+                                value={this.state.business_category}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -423,9 +427,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="businessSubcategory"
+                                 id="business_subcategory"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.businessSubcategory}
+                                value={this.state.business_subcategory}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -438,9 +442,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="date"
-                                id="businnesRegisteredOn"
+                                id="business_registered_on"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.businnesRegisteredOn}
+                                value={this.state.business_registered_on}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -453,9 +457,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="merchantPayin"
+                                id="merchant_pay_in"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.merchantPayin}
+                                value={this.state.merchant_pay_in}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -468,9 +472,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="merchantPayout"
+                                id="merchant_pay_out"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.merchantPayout}
+                                value={this.state.merchant_pay_out}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -495,9 +499,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="websiteURL"
+                                id="website_url"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.websiteURL}
+                                value={this.state.website_url}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -510,9 +514,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="settlementCharge"
+                                id="settlement_charge"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.settlementCharge}
+                                value={this.state.settlement_charge}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -525,9 +529,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="chargebackPercent"
+                                 id="expected_chargeback_percentage"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.chargebackPercent}
+                                value={this.state.expected_chargeback_percentage}
                                 onChange={this.handleInputChange}
                               />
                               <label
@@ -568,9 +572,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="firstName"
+                                id="director_first_name"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.firstName}
+                                value={this.state.director_first_name}
                                 onChange={this.handleInputChange}
                               />
                               <label htmlFor="firstName" className="inputLabel">
@@ -580,9 +584,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="lastName"
+                                id="director_last_name"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.lastName}
+                                value={this.state.director_last_name}
                                 onChange={this.handleInputChange}
                               />
                               <label htmlFor="lastName" className="inputLabel">
@@ -592,9 +596,9 @@ class MerchantForm extends Component {
                             <div className="input-group add-merchant-input-group">
                               <input
                                 type="text"
-                                id="skype"
+                                id="skype_id"
                                 className="inputFeild add-merchant-input"
-                                value={this.state.skype}
+                                value={this.state.skype_id}
                                 onChange={this.handleInputChange}
                               />
                               <label htmlFor="skype" className="inputLabel">

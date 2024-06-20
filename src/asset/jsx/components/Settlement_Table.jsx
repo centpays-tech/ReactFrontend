@@ -5,6 +5,8 @@ import * as XLSX from 'xlsx';
 // component
 import Modal from "./Modal";
 import MessageBox from "./Message_box";
+import ScrollTableToBottomButton from "./ScrollTableToBottom";
+import ScrollTableToTopButton from "./ScrollTableToTop";
 
 //SVG icons
 import { Excel, RateIcon, RightSign, LeftSign, More, CheckMark, MailStatus, PlusSymbol } from "../../media/icon/SVGicons";
@@ -441,7 +443,7 @@ class Table extends Component {
                     <th className="p1" key={index}>{item.heading}</th>
                   ))}
                   {showRates && <th className="p1">Rates</th>}
-                  <th></th>
+                  <th>{ScrollTableToBottomButton}</th>
                 </tr>
               </thead>
               <tbody>
@@ -502,6 +504,7 @@ class Table extends Component {
                 )}
               </tbody>
             </table>
+            <ScrollTableToTopButton/>
           </div>
           <div className="table-Footer">
           <div className="table-footer-rows-div">
